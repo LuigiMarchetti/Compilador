@@ -149,13 +149,14 @@ public class Interface {
                 Lexico lexico = new Lexico();
                 lexico.setInput(editorArea.getText());
                 String[] linhas = editorArea.getText().split("\n");
-                //for (int i = 0; i < linhas.length; i++) {
-                //    System.out.println(linhas[i]);
-                //}
+
                 try {
                     int linhaAtual = 0;
-                    String message = "linha  |  classe  |  lexema\n";
+                    String formatacao = "%-15s%-30s%-15s";
+                    String message = String.format(formatacao, "linha", "classe", "lexema") + "\n";
                     Token t = null;
+
+
                     while ( (t = lexico.nextToken()) != null ) {
                         linhaAtual = getLinha(linhas, t.getLexeme());
                         String classe = getClase(t);
@@ -164,12 +165,8 @@ public class Interface {
                             throw new LexicalError("palavra reservada inválida", t.getPosition());
                         }
 
-                        message += linhaAtual + " - " + classe + " - " + t.getLexeme() + "\n";
-
-                        if (editorArea.getText() != null) {
-                            messageArea.setText(message +"\nCompilado com sucesso");
-                            System.out.println(message +"\nCompilado com sucesso");
-                        }
+                        //message += linhaAtual + " - " + classe + " - " + t.getLexeme() + "\n";
+                        message += String.format(formatacao, linhaAtual, classe, t.getLexeme()) + "\n";
 
 
                         // só escreve o lexema, necessário escrever t.getId (), t.getPosition()
@@ -182,6 +179,11 @@ public class Interface {
                         // esse código apresenta os tokens enquanto não ocorrer erro
                         // no entanto, os tokens devem ser apresentados SÓ se não ocorrer erro, necessário adaptar
                         // para atender o que foi solicitado
+                    }
+                    if (editorArea.getText() != null) {
+                        message += "\n" + String.format(formatacao,"","programa compilado com sucesso", "");
+                        messageArea.setText(message);
+                        System.out.println(message);
                     }
                 }
                 catch ( LexicalError ex ) {  // tratamento de erros
@@ -201,7 +203,8 @@ public class Interface {
                         response = "linha " + linha + ": "+ sequencia + " " + ex.getMessage();
                     } else if (ex.getMessage().equals("identificador inválido")) {
                         String sequencia = editorArea.getText()
-                                .substring(ex.getPosition());
+                                .substring(ex.getPosition())
+                                .split(" ")[0];
 
                         response = "linha " + linha + ": "+ sequencia + " " + ex.getMessage();
                     } else {
@@ -236,6 +239,7 @@ public class Interface {
         toolBar.add(equipe);
 
         editorArea = new JTextArea();
+        editorArea.setFont( new Font("Courier New", Font.PLAIN, 12));
         JScrollPane editorScrollPane = new JScrollPane(editorArea);
         editorArea.setBorder(new NumberedBorder());
         editorScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -243,6 +247,7 @@ public class Interface {
 
         messageArea = new JTextArea();
         messageArea.setEditable(false);
+        messageArea.setFont( new Font("Courier New", Font.PLAIN, 12));
         JScrollPane messageScrollPane = new JScrollPane(messageArea);
         messageScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         messageScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
