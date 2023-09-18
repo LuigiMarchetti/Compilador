@@ -148,10 +148,29 @@ public class Interface {
             public void actionPerformed(ActionEvent e) {
                 Lexico lexico = new Lexico();
                 lexico.setInput(editorArea.getText());
+                String[] linhas = editorArea.getText().split("\n");
+                //for (int i = 0; i < linhas.length; i++) {
+                //    System.out.println(linhas[i]);
+                //}
                 try {
+                    int linhaAtual = 0;
+                    String message = "linha  |  classe  |  lexema\n";
                     Token t = null;
                     while ( (t = lexico.nextToken()) != null ) {
-                        System.out.println(t.getLexeme());
+                        linhaAtual = getLinha(linhas, t.getLexeme());
+                        String classe = getClase(t);
+
+                        if (classe.equals("pr_invalida")) {
+                            throw new LexicalError("palavra reservada inválida", t.getPosition());
+                        }
+
+                        message += linhaAtual + " - " + classe + " - " + t.getLexeme() + "\n";
+
+                        if (editorArea.getText() != null) {
+                            messageArea.setText(message +"\nCompilado com sucesso");
+                            System.out.println(message +"\nCompilado com sucesso");
+                        }
+
 
                         // só escreve o lexema, necessário escrever t.getId (), t.getPosition()
 
@@ -166,9 +185,31 @@ public class Interface {
                     }
                 }
                 catch ( LexicalError ex ) {  // tratamento de erros
-                    System.out.println(ex.getMessage() + " em " + ex.getPosition());
-                    messageArea.setText(ex.getMessage());
+                    String response = "";
+                    String caracter = String.valueOf(editorArea.getText()
+                            .substring(ex.getPosition())
+                            .charAt(0));
+                    int linha = getLinha(linhas, caracter);
 
+                    if (ex.getMessage().equals("símbolo inválido")) {
+                        response = "linha " + linha + ": "+ caracter + " " + ex.getMessage();
+                    } else if (ex.getMessage().equals("palavra reservada inválida")) {
+                        String sequencia = String.valueOf(editorArea.getText()
+                                .substring(ex.getPosition())
+                                .split("[^a-z]+")[0]);
+
+                        response = "linha " + linha + ": "+ sequencia + " " + ex.getMessage();
+                    } else if (ex.getMessage().equals("identificador inválido")) {
+                        String sequencia = editorArea.getText()
+                                .substring(ex.getPosition());
+
+                        response = "linha " + linha + ": "+ sequencia + " " + ex.getMessage();
+                    } else {
+                        response = "linha " + linha + ": " + ex.getMessage();
+                    }
+
+                    System.out.println(response);
+                    messageArea.setText(response);
                     // e.getMessage() - retorna a mensagem de erro de SCANNER_ERRO (olhar ScannerConstants.java
                     // e adaptar conforme o enunciado da parte 2)
                     // e.getPosition() - retorna a posição inicial do erro, tem que adaptar para mostrar a
@@ -219,6 +260,34 @@ public class Interface {
         frame.add(statusBar, BorderLayout.SOUTH);
 
         frame.setVisible(true);
+    }
+
+    private static String getClase(Token t) {
+        if (t.getId() >= 7 && t.getId() <= 17) {
+            return "palavra reservada";
+        } else if (t.getId() >= 18 && t.getId() <= 36) {
+            return "símbolo especial";
+        } else if (t.getId() == 2) {
+            return "pr_invalida";
+        } else if (t.getId() == 3) {
+            return "identificador";
+        } else if (t.getId() == 4) {
+            return "constante_int";
+        } else if (t.getId() == 5) {
+            return "constante_float";
+        } else if (t.getId() == 6) {
+            return "constante_string";
+        } else {
+            return "";
+        }
+    }
+    private static int getLinha (String[] linhas, String verify) {
+        for (int i = 0; i < linhas.length; i++) {
+            if (linhas[i].contains(verify)){
+                return i+1;
+            }
+        }
+        return -1;
     }
 
     private static JButton createButton(String text, String iconPath, String tooltip) {
