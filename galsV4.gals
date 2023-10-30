@@ -1,0 +1,156 @@
+#Options
+GenerateScanner = true
+GenerateParser = true
+Language = Java
+ScannerName = Lexico
+ParserName = Sintatico
+SemanticName = Semantico
+ScannerCaseSensitive = true
+ScannerTable = Compact
+Input = String
+Parser = LL
+#RegularDefinitions
+prefixo: _i | _f | _b | _s
+#Tokens
+// EQUIPE: Ari Elias da Silva Junior; Eduardo Zimmermann; Luigi Garcia Marchetti
+// NOTA: 8,78
+
+//palavra reservada
+palavra_reservada: [a-z]+
+
+//identificador 
+identificador: {prefixo}([a-z]([a-z0-9]+|[A-Z][a-z0-9]+)*[A-Z]?|[A-Z]([a-z0-9]([a-z0-9]+|[A-Z][a-z0-9]+)*[A-Z]?)*)
+//constante_int
+constante_int: [1-9][0-9]*|0
+//constante_float
+constante_float:([1-9][0-9]*|0)\.(([0-9]+[1-9]+|[1-9]+)+|0)
+//constante_string
+constante_string:\"([^ \n \" \\ %]*|% [ifsb])*\"
+
+//relacao das palavras reservadas
+// do else false fun if in main out repeat true while
+do = palavra_reservada: "do"
+else = palavra_reservada: "else"
+false = palavra_reservada: "false"
+fun = palavra_reservada: "fun"
+if = palavra_reservada: "if"
+in = palavra_reservada: "in"
+main = palavra_reservada: "main"
+out = palavra_reservada: "out"
+repeat = palavra_reservada: "repeat"
+true = palavra_reservada: "true"
+while = palavra_reservada: "while"
+
+//relaï¿½ï¿½o dos simbolos especiais
+//  & | ! , ; = : ( ) { } == != < > + - * /
+"&"
+"|"
+"!"
+","
+";"
+"="
+":"
+"("
+")"
+"{"
+"}"
+"=="
+"!="
+"<"
+">"
+"+"
+"-"
+"*"
+"/"
+
+
+//reconhecer e ignorar caracteres de formataï¿½ï¿½o
+:[\s\t\n\r]
+
+
+//reconhecer e ignorar comentï¿½rios
+//linha
+:! "#" [^\n]*
+//comentï¿½rio em bloco
+:! "["[^\[ \]]*"]"
+#NonTerminals
+<forma_geral>
+
+<instrucao>
+<intrucao1>
+
+<lista_identificadores>
+<lista_identificadores1>
+<lista_entrada>
+<lista_entrada1>
+<lista_entrada2>
+<lista_instrucoes>
+<lista_instrucoes1>
+<lista_expressoes>
+<lista_expressoes1>
+<lista_comandos>
+<lista_comandos1>
+
+<valor>
+<expressao>
+
+<comando>
+
+<cmd_atribuicao>
+<cmd_entrada>
+<cmd_saida>
+<cmd_selecao>
+<cmd_selecao1>
+<cmd_selecao2>
+<cmd_repeticao>
+
+
+
+#Grammar
+<forma_geral> ::= fun main "{" <lista_instrucoes> "}" ;
+
+
+<lista_instrucoes> ::= <instrucao> ";" <lista_instrucoes1> ;
+<lista_instrucoes1> ::= <lista_instrucoes> | î ;
+
+<instrucao> ::= <lista_identificadores><intrucao1> | <cmd_entrada> | <cmd_saida> | <cmd_selecao> | <cmd_repeticao> ;
+<intrucao1> ::= ":" <valor> | î | "=" <expressao> ;
+
+<lista_identificadores> ::= identificador<lista_identificadores1> ;
+<lista_identificadores1> ::= î | "," <lista_identificadores> ;
+
+<valor> ::= constante_int | constante_float | constante_string | true | false ;
+//-------------
+//<comando> ::= <cmd_atribuicap> | <cmd_entrada> | <cmd_saida> | <cmd_selecao> 
+//| <cmd_repeticao>;
+//<cmd_atribuicao> ::= <lista_identificadores> "=" <expressao> ;
+//-------------
+<cmd_entrada> ::= in "(" <lista_entrada> ")";
+
+
+<lista_entrada> ::= <lista_entrada2> <lista_identificadores><lista_entrada1> ;
+<lista_entrada1> ::= ";" <lista_entrada2><lista_identificadores><lista_entrada1> | î ;
+<lista_entrada2> ::= constante_string "," | î ;
+
+//---------
+<cmd_saida> ::= out "(" <lista_expressoes> ")" ;
+<lista_expressoes> ::= <expressao><lista_expressoes1> ;
+<lista_expressoes1> ::= "," <expressao><lista_expressoes1> | î ;
+
+//--------
+<cmd_selecao> ::= if "(" <expressao> ")" "{" <lista_comandos> "}"<cmd_selecao1> ;
+<cmd_selecao1> ::= î | else "{" <lista_comandos> "}";
+
+<lista_comandos> ::= <comando> ";" <lista_comandos1>;
+<lista_comandos1> ::= <comando> ";" <lista_comandos1> | î;
+
+//--------
+<cmd_repeticao> ::= while "(" <expressao> ")" do "{" <lista_comandos> "}" | repeat "{"<lista_comandos>"}" while "(" <expressao> ")";
+
+
+
+
+
+
+
+

@@ -76,7 +76,7 @@ public class Interface {
         salvar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (currentFile == null) {
+                if (statusLabel.getText().equals("Pasta: N/A | Arquivo: Nenhum")) {
                     salvarComo();
                 } else {
                     salvarArquivo(currentFile);
@@ -147,18 +147,30 @@ public class Interface {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Lexico lexico = new Lexico();
+                Sintatico sintatico = new Sintatico();
+                Semantico semantico = new Semantico();
                 lexico.setInput(editorArea.getText());
                 String[] linhas = editorArea.getText().split("\n");
+                int[] tamanhoPorLinha = new int[linhas.length];
+                int lastLenght = 0;
+
+                for (int i = 0; i < linhas.length; i++) {
+                    tamanhoPorLinha[i] = linhas[i].length() + lastLenght + 1;
+                    lastLenght += linhas[i].length() + 1;
+                }
 
                 try {
                     int linhaAtual = 0;
+
+                    sintatico.parse(lexico, semantico);    // tradução dirigida pela sintaxe
                     String formatacao = "%-15s%-30s%-15s";
                     String message = String.format(formatacao, "linha", "classe", "lexema") + "\n";
                     Token t = null;
 
 
                     while ( (t = lexico.nextToken()) != null ) {
-                        linhaAtual = getLinha(linhas, t.getLexeme());
+                        
+                        linhaAtual = getLinhaNovo(tamanhoPorLinha, t.getPosition());
                         String classe = getClase(t);
 
                         if (classe.equals("pr_invalida")) {
@@ -185,13 +197,14 @@ public class Interface {
                         messageArea.setText(message);
                         System.out.println(message);
                     }
+                    
                 }
                 catch ( LexicalError ex ) {  // tratamento de erros
                     String response = "";
                     String caracter = String.valueOf(editorArea.getText()
                             .substring(ex.getPosition())
                             .charAt(0));
-                    int linha = getLinha(linhas, caracter);
+                    int linha = getLinhaNovo(tamanhoPorLinha, ex.getPosition());
 
                     if (ex.getMessage().equals("símbolo inválido")) {
                         response = "linha " + linha + ": "+ caracter + " " + ex.getMessage();
@@ -217,6 +230,25 @@ public class Interface {
                     // e adaptar conforme o enunciado da parte 2)
                     // e.getPosition() - retorna a posição inicial do erro, tem que adaptar para mostrar a
                     // linha
+                } catch (SyntaticError ex) {
+                    String response = "";
+                    String caracter = String.valueOf(editorArea.getText()
+                            .substring(ex.getPosition())
+                            .charAt(0));
+                    int linha = getLinhaNovo(tamanhoPorLinha, ex.getPosition());
+
+                    response += "Erro na linha " + linha + " - encontrado " + sintatico.getToken() + " esperado " + ex.getMessage();
+
+
+                    System.out.println(sintatico.getToken());
+                    messageArea.setText(response);
+
+                    //Trata erros sintáticos
+                    //linha 				sugestão: converter getPosition em linha
+                    //símbolo encontrado    sugestão: implementar um método getToken no sintatico
+                    //mensagem - símbolos esperados,   alterar ParserConstants.java, String[] PARSER_ERROR
+                } catch (SemanticError ex) {
+                    ex.printStackTrace();
                 }
             }
         });
@@ -286,13 +318,16 @@ public class Interface {
             return "";
         }
     }
-    private static int getLinha (String[] linhas, String verify) {
-        for (int i = 0; i < linhas.length; i++) {
-            if (linhas[i].contains(verify)){
-                return i+1;
+
+    private static int getLinhaNovo(int[] tamanhoPorLinha, int position) {
+        int linhaErro = 0;
+        for (int i = 0; i < tamanhoPorLinha.length; i++) {
+            if (position + 1 <= tamanhoPorLinha[i]) {
+                linhaErro = i + 1;
+                break;
             }
         }
-        return -1;
+        return linhaErro;
     }
 
     private static JButton createButton(String text, String iconPath, String tooltip) {
